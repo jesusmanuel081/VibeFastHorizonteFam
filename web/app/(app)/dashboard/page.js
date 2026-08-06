@@ -1,124 +1,120 @@
-import { Check, RotateCcw, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { createItem, toggleItem, deleteItem } from "./actions"
+import { createPrograma, updatePrograma, deletePrograma } from "./actions"
+import ProgramaFields from "@/components/programas/ProgramaFields"
 
-export const metadata = { title: "Dashboard" }
+export const metadata = { title: "Programas" }
+
+const ESTADO_BADGE = {
+  Publicado: "badge-success",
+  Borrador: "badge-ghost",
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: items, error } = await supabase
-    .from("core_items")
+  const { data: programas, error } = await supabase
+    .from("programas")
     .select("*")
+    .order("orden", { ascending: true })
     .order("created_at", { ascending: false })
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tu dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Tus programas</h1>
         <p className="mt-1 text-sm text-base-content/70">
-          CRUD genérico sobre <code>core_items</code>. En Sem 2 lo renombras a
-          tu dominio (leads, recetas, proyectos…).
+          Crea, edita y publica los programas de la asociación. Los que estén en estado{" "}
+          <span className="font-medium">Publicado</span> aparecen en la página{" "}
+          <Link href="/programas" className="text-primary underline underline-offset-2">
+            /programas
+          </Link>
+          .
         </p>
       </div>
 
       {/* Crear */}
       <form
-        action={createItem}
-        className="rounded-box border border-base-200 bg-base-100 p-4"
+        action={createPrograma}
+        className="rounded-box border border-base-200 bg-base-100 p-5"
       >
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            name="title"
-            required
-            maxLength={120}
-            placeholder="Título del item"
-            aria-label="Título del item"
-            className="input input-bordered flex-1"
-          />
-          <input
-            name="description"
-            maxLength={280}
-            placeholder="Descripción (opcional)"
-            aria-label="Descripción del item"
-            className="input input-bordered flex-1"
-          />
-          <button type="submit" className="btn btn-primary">
-            Agregar
-          </button>
-        </div>
+        <h2 className="mb-4 flex items-center gap-2 font-semibold">
+          <Plus className="size-4 text-primary" />
+          Nuevo programa
+        </h2>
+        <ProgramaFields />
+        <button type="submit" className="btn btn-primary mt-4">
+          Crear programa
+        </button>
       </form>
 
       {error && (
         <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
-          No pudimos cargar tus items: {error.message}
+          No pudimos cargar tus programas: {error.message}
         </div>
       )}
 
       {/* Lista */}
-      {!items?.length ? (
+      {!programas?.length ? (
         <div className="rounded-box border border-dashed border-base-300 bg-base-100 px-4 py-12 text-center text-base-content/60">
-          Aún no tienes items. Crea el primero arriba.
+          Aún no tienes programas. Crea el primero arriba.
         </div>
       ) : (
-        <ul className="space-y-2">
-          {items.map((item) => (
+        <ul className="space-y-3">
+          {programas.map((programa) => (
             <li
-              key={item.id}
-              className="flex items-center gap-3 rounded-box border border-base-200 bg-base-100 px-4 py-3"
+              key={programa.id}
+              className="rounded-box border border-base-200 bg-base-100 p-4"
             >
-              <div className="min-w-0 flex-1">
-                <p
-                  className={
-                    item.status === "done"
-                      ? "truncate font-medium text-base-content/40 line-through"
-                      : "truncate font-medium"
-                  }
-                >
-                  {item.title}
-                </p>
-                {item.description && (
-                  <p className="truncate text-sm text-base-content/60">
-                    {item.description}
-                  </p>
-                )}
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate font-medium">{programa.nombre}</p>
+                    <span
+                      className={`badge badge-sm ${
+                        ESTADO_BADGE[programa.estado] || "badge-ghost"
+                      }`}
+                    >
+                      {programa.estado}
+                    </span>
+                    <span className="badge badge-sm badge-outline">
+                      {programa.publico_objetivo}
+                    </span>
+                    <span className="badge badge-sm badge-ghost">Orden: {programa.orden}</span>
+                  </div>
+                  {programa.descripcion_corta && (
+                    <p className="mt-1 truncate text-sm text-base-content/60">
+                      {programa.descripcion_corta}
+                    </p>
+                  )}
+                </div>
+
+                <form action={deletePrograma}>
+                  <input type="hidden" name="id" value={programa.id} />
+                  <button
+                    type="submit"
+                    className="btn btn-ghost btn-sm btn-square text-error"
+                    title="Borrar"
+                    aria-label={`Borrar ${programa.nombre}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </form>
               </div>
 
-              <span
-                className={`badge badge-sm ${
-                  item.status === "done" ? "badge-success" : "badge-ghost"
-                }`}
-              >
-                {item.status}
-              </span>
-
-              <form action={toggleItem}>
-                <input type="hidden" name="id" value={item.id} />
-                <input type="hidden" name="status" value={item.status} />
-                <button
-                  type="submit"
-                  className="btn btn-ghost btn-sm btn-square"
-                  title={item.status === "done" ? "Reabrir" : "Marcar como hecho"}
-                  aria-label={item.status === "done" ? "Reabrir item" : "Marcar como hecho"}
-                >
-                  {item.status === "done" ? (
-                    <RotateCcw className="size-4" />
-                  ) : (
-                    <Check className="size-4" />
-                  )}
-                </button>
-              </form>
-
-              <form action={deleteItem}>
-                <input type="hidden" name="id" value={item.id} />
-                <button
-                  type="submit"
-                  className="btn btn-ghost btn-sm btn-square text-error"
-                  title="Borrar"
-                  aria-label={`Borrar ${item.title}`}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </form>
+              <details className="group mt-3 rounded-box border border-base-200">
+                <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium">
+                  <Pencil className="size-3.5" />
+                  Editar programa
+                </summary>
+                <form action={updatePrograma} className="border-t border-base-200 p-4">
+                  <input type="hidden" name="id" value={programa.id} />
+                  <ProgramaFields values={programa} />
+                  <button type="submit" className="btn btn-primary btn-sm mt-4">
+                    Guardar cambios
+                  </button>
+                </form>
+              </details>
             </li>
           ))}
         </ul>
