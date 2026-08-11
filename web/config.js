@@ -44,7 +44,7 @@ const config = {
   features: {
     waitlist: false,
     googleAuth: true,
-    emailLogin: false,
+    emailLogin: true,
     aiChat: true,
     toolUse: true,
     agents: true,
@@ -85,7 +85,7 @@ const config = {
     loginUrl: "/login",
     afterLoginUrl: "/dashboard",
     afterLogoutUrl: "/",
-    providers: ["google"],
+    providers: ["google", "email"],
   },
 
   // -----------------------------------------------------------

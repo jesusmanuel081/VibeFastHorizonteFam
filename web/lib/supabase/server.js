@@ -44,8 +44,15 @@ export async function getUser() {
   // Antes de configurar Supabase (Sem 2) no hay sesión posible.
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    return user
+  } catch {
+    // Si el servicio de auth está caído o hay un error de red,
+    // tratamos al visitante como no autenticado (redirect a /login)
+    // en vez de tumbar la página con un 500.
+    return null
+  }
 }

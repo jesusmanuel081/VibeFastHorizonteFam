@@ -17,7 +17,6 @@
 
 import { z } from "zod"
 import { generateObject } from "@/lib/openai/structured"
-import config from "@/config"
 
 // ------------------------------------------------------------
 // Schema estricto. `nivel_atencion` solo admite los tres valores
@@ -85,8 +84,7 @@ export async function analizarExpediente({ texto }) {
 
   const parsed = await generateObject(
     ExpedienteAnalysisSchema,
-    prompt,
-    config.ai.structuredModel // gpt-4o-mini
+    prompt
   )
 
   // Red de seguridad: si la respuesta no valida el schema

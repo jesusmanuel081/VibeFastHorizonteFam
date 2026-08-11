@@ -17,7 +17,7 @@ import config from "@/config"
 
 // Rutas que requieren sesión. Todo lo que cuelga de /(app) en realidad,
 // pero el middleware no ve grupos de rutas, así que listamos prefijos.
-const PROTECTED_PREFIXES = ["/dashboard", "/account", "/chat"]
+const PROTECTED_PREFIXES = ["/dashboard", "/account", "/chat", "/expediente", "/agent"]
 
 export async function updateSession(request) {
   let response = NextResponse.next({ request })
@@ -51,9 +51,15 @@ export async function updateSession(request) {
   )
 
   // IMPORTANTE: no metas lógica entre createServerClient y getUser().
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const {
+      data: { user: u },
+    } = await supabase.auth.getUser()
+    user = u
+  } catch {
+    // Auth caído o error de red: tratar como no autenticado.
+  }
 
   const { pathname } = request.nextUrl
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))

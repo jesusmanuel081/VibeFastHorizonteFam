@@ -23,7 +23,7 @@
 // ============================================================
 
 import { StateGraph, Annotation, START, END } from "@langchain/langgraph"
-import { openai } from "@/lib/openai/client"
+import { openai, getModel } from "@/lib/openai/client"
 import config from "@/config"
 
 // Canales del estado del grafo. `messages` acumula; los demás son
@@ -89,7 +89,7 @@ export async function* runAgent({
   tools = [],
   executeTool,
   onToolCall,
-  model = config.ai.agentModel,
+  model = getModel(config.ai.agentModel),
   maxSteps = 6,
 }) {
   // Cola que conecta los nodos del grafo (productores) con este
