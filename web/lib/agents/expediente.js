@@ -72,7 +72,17 @@ Principios inamovibles:
 - Usa lenguaje claro, respetuoso, empático y no revictimizante en todos los campos, especialmente en respuesta_familia.
 - Cuando exista una señal que requiera revisión humana (riesgo, contradicciones, dudas legales, angustia, etc.), inclúyela en alertas y activa requiere_intervencion_humana. Las alertas son señales para revisión humana, no conclusiones.
 
-Devuelve el análisis estructurado que se te pide, en español, y nada más.`.trim()
+Formato de salida (OBLIGATORIO): devuelve ÚNICAMENTE un objeto JSON válido, sin texto fuera de él, con EXACTAMENTE estas claves y tipos:
+- resumen: string
+- etapa_proceso: string
+- pendientes: array de strings
+- alertas: array de strings
+- proximos_pasos: array de strings
+- nivel_atencion: string, SOLO uno de estos tres valores exactos: "normal", "requiere_revision", "prioritario"
+- respuesta_familia: string
+- requiere_intervencion_humana: boolean
+
+Usa exactamente esos nombres de clave (en minúscula, con guion bajo, sin tildes ni espacios).`.trim()
 
 // ------------------------------------------------------------
 // Análisis del expediente.
