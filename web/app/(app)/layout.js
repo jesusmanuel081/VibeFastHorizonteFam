@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { LayoutDashboard, MessageSquare, Bot } from "lucide-react"
+import { LayoutDashboard, MessageSquare, Bot, ClipboardCheck } from "lucide-react"
 import config from "@/config"
 import { getUser } from "@/lib/supabase/server"
 import UserMenu from "@/components/auth/UserMenu"
@@ -8,6 +8,7 @@ import Logo from "@/components/Logo"
 
 const NAV = [
   { href: "/dashboard", label: "Programas", icon: LayoutDashboard },
+  { href: "/expediente", label: "Expedientes", icon: ClipboardCheck },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/agent", label: "Agente", icon: Bot },
 ]
