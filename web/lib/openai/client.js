@@ -64,7 +64,7 @@ function getProvider() {
 
 export function getModel(fallback) {
   if (process.env.AI_MODEL) return process.env.AI_MODEL
-  if (process.env.AI_PROVIDER === "gemini") return "gemini-2.5-flash"
+  if (process.env.AI_PROVIDER === "gemini") return "gemini-3.5-flash-lite"
   if (process.env.AI_PROVIDER === "ollama") return "llama3.1:8b"
   return fallback
 }
