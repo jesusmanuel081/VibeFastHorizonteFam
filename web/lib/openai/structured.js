@@ -19,6 +19,43 @@ function stripCodeFence(text) {
     .replace(/\s*```$/, "")
 }
 
+function zodFieldToSchema(field) {
+  const def = field?._def
+  if (!def) return {}
+  switch (def.typeName) {
+    case "ZodString":
+      return { type: "string", ...(def.description ? { description: def.description } : {}) }
+    case "ZodNumber":
+      return { type: "number", ...(def.description ? { description: def.description } : {}) }
+    case "ZodBoolean":
+      return { type: "boolean", ...(def.description ? { description: def.description } : {}) }
+    case "ZodArray":
+      return {
+        type: "array",
+        items: zodFieldToSchema(def.type),
+      }
+    case "ZodEnum":
+      return { type: "string", enum: def.values }
+    case "ZodOptional":
+      return zodFieldToSchema(def.innerType)
+    default:
+      return {}
+  }
+}
+
+function zodToMinimalJsonSchema(schema) {
+  const def = schema?._def
+  if (!def || def.typeName !== "ZodObject") return {}
+  const shape = typeof def.shape === "function" ? def.shape() : def.shape
+  const properties = {}
+  const required = []
+  for (const [key, value] of Object.entries(shape || {})) {
+    properties[key] = zodFieldToSchema(value)
+    required.push(key)
+  }
+  return { type: "object", properties, required }
+}
+
 async function generateStrict(schema, prompt, model) {
   const completion = await openai.beta.chat.completions.parse({
     model,
@@ -29,14 +66,25 @@ async function generateStrict(schema, prompt, model) {
 }
 
 async function generatePlain(schema, prompt, model, withFormat) {
+  let systemContent
+  if (withFormat) {
+    systemContent =
+      "Devuelve SOLO un objeto JSON válido. No agregues texto, markdown, ni comentarios."
+  } else {
+    const jsonSchema = zodToMinimalJsonSchema(schema)
+    systemContent = [
+      "Devuelve SOLO un objeto JSON válido. No agregues texto, markdown, ni comentarios fuera del JSON.",
+      "",
+      "El objeto debe cumplir EXACTAMENTE este schema JSON:",
+      "```json",
+      JSON.stringify(jsonSchema, null, 2),
+      "```",
+    ].join("\n")
+  }
   const completion = await openai.chat.completions.create({
     model,
     messages: [
-      {
-        role: "system",
-        content:
-          "Devuelve SOLO un objeto JSON válido. No agregues texto, markdown, ni comentarios.",
-      },
+      { role: "system", content: systemContent },
       { role: "user", content: prompt },
     ],
     ...(withFormat ? { response_format: { type: "json_object" } } : {}),

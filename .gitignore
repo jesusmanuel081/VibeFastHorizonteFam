@@ -64,3 +64,4 @@ firmware/**/dependencies.lock
 # Config local de editores / asistentes de IA
 .claude/
 .cursor/
+.env*
